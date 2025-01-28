@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wordset Creator for PocAng Lang</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="app" class="container mx-auto p-6 bg-gray-50 min-h-screen rounded shadow-lg">
+        <!-- Wordset Form -->
+        <form class="mb-6 space-y-4">
+            <article>
+                <label for="WordsetName" class="block text-sm font-medium text-gray-700 mb-1">Wordset Name:</label>
+                <input type="text" id="WordsetName" v-model="wordsetName"
+                    class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2">
+            </article>
+            <article>
+                <label for="WordsetLanguage" class="block text-sm font-medium text-gray-700 mb-1">Wordset Language:</label>
+                <input type="text" id="WordsetLanguage" v-model="wordsetLanguage"
+                    class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2">
+            </article>
+        </form>
+
+        <input type="file" @change="importFromJSON($event)"
+            class="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 mb-4">
+
+        <p class="mb-4 text-gray-700">
+            Type in <strong>PLACEHOLDER</strong> in the space where you intend the answer for the fill-in question to be.
+        </p>    
+
+        <!-- Wordlist Section -->
+        <section class="grid grid-cols-3 gap-4 mb-6 border-b border-gray-300 pb-4 overflow-auto h-60">
+            <div class="font-semibold text-gray-700">Question Type</div>
+            <div class="font-semibold text-gray-700">Question</div>
+            <div class="font-semibold text-gray-700">Answer</div>
+        
+            <template v-for="(question, index) in wordlist">
+                <div class="text-gray-800 border-b border-gray-200">{{ question.type }}</div>
+                <div class="text-gray-800 border-b border-gray-200">{{ question.valueOne }}</div>
+                <div class="text-gray-800 border-b border-gray-200">{{ question.valueTwo }}</div>
+            </template>
+        </section>
+
+        <!-- Question Input Section -->
+        <section class="mb-6 space-y-4">
+            <article>
+                <label for="questionType" class="block text-sm font-medium text-gray-700 mb-1">Question Type:</label>
+                <select id="questionType" v-model="questionType"
+                    class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2">
+                    <option value="fillIn">Fill the sentence in</option>
+                    <option value="translate">Translate</option>
+                </select>
+            </article>
+            <article>
+                <label for="valueOne" class="block text-sm font-medium text-gray-700 mb-1">Question:</label>
+                <input type="text" id="valueOne" v-model="questionValueOne"
+                    class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2">
+            </article>
+            <article>
+                <label for="valueTwo" class="block text-sm font-medium text-gray-700 mb-1">Answer:</label>
+                <input type="text" id="valueTwo" v-model="questionValueTwo"
+                    class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2">
+            </article>
+            <button @click="addQuestionToList"
+                class="bg-blue-500 text-white font-medium py-2 px-4 rounded hover:bg-blue-600 active:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300">
+                Add Question
+            </button>
+        </section>
+
+        <!-- Export Button -->
+        <button @click="exportFile"
+            class="bg-green-500 text-white font-medium py-2 px-4 rounded hover:bg-green-600 active:bg-green-700 focus:outline-none focus:ring focus:ring-green-300">
+            Export Wordset
+        </button>
+    </div>    
+    <script src="https://unpkg.com/petite-vue"></script>
+    <script>
+        PetiteVue.createApp({
+            wordsetName: '',
+            wordsetLanguage: '',
+            wordlist: [],
+            questionType: '',
+            questionValueOne: '',
+            questionValueTwo: '',
+
+            addQuestionToList() {
+                const data = {
+                    type: this.questionType,
+                    valueOne: this.questionValueOne,
+                    valueTwo: this.questionValueTwo
+                }
+                this.wordlist.push(data);
+                this.questionType = '';
+                this.questionValueOne = '';
+                this.questionValueTwo = ''; 
+            },
+
+            importFromJSON(event) {
+                const file = event.target.files[0];
+                if (!file) {
+                    console.error('No file selected');
+                    return;
+                }
+    
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const savefile = JSON.parse(e.target.result);
+                        this.wordlist = savefile.wordlist;
+                        this.wordsetName = savefile.name;
+                        this.wordsetLanguage = savefile.language
+                    } catch (error) {
+                        console.error('Error parsing JSON file:', error);
+                    }
+                };
+                reader.readAsText(file);
+            },
+
+            exportFile() {
+            try { 
+                const newDataFile = {
+                    name: this.wordsetName,
+                    language: this.wordsetLanguage,
+                    wordlist: this.wordlist
+                }
+                const jsonData = JSON.stringify(newDataFile, null, 2);
+
+                const blob = new Blob([jsonData], { type: 'application/json' });
+
+                const link = document.createElement('a');
+                link.setAttribute('href', URL.createObjectURL(blob));
+                link.setAttribute('download', this.wordsetName + '.json');
+
+                document.body.appendChild(link);
+                link.click();
+
+                document.body.removeChild(link);
+                } catch (error) {
+                console.error('Failed to export wordset');
+                }
+            }
+
+        }).mount('#app')
+    </script>
+</body>
+</html>
