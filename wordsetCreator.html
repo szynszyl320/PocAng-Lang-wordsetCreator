@@ -30,15 +30,17 @@
         </p>    
 
         <!-- Wordlist Section -->
-        <section class="grid grid-cols-3 gap-4 mb-6 border-b border-gray-300 pb-4 overflow-auto h-60">
+        <section class="grid grid-cols-4 gap-4 mb-6 border-b border-gray-300 pb-4 overflow-auto h-60">
             <div class="font-semibold text-gray-700">Question Type</div>
             <div class="font-semibold text-gray-700">Question</div>
             <div class="font-semibold text-gray-700">Answer</div>
+            <div></div>
         
             <template v-for="(question, index) in wordlist">
                 <div class="text-gray-800 border-b border-gray-200">{{ question.type }}</div>
                 <div class="text-gray-800 border-b border-gray-200">{{ question.valueOne }}</div>
                 <div class="text-gray-800 border-b border-gray-200">{{ question.valueTwo }}</div>
+                <button class="bg-red-500 text-white font-medium py-2 px-4 rounded hover:bg-red-600 active:bg-red-700 focus:outline-none focus:ring focus:ring-red-300" @click="deleteQuestionFromlist(index)">Delete from wordset</button>
             </template>
         </section>
 
@@ -94,6 +96,10 @@
                 this.questionType = '';
                 this.questionValueOne = '';
                 this.questionValueTwo = ''; 
+            },
+
+            deleteQuestionFromlist(id) {
+                this.wordlist.splice(id, 1);
             },
 
             importFromJSON(event) {
